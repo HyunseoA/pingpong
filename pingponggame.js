@@ -1,11 +1,13 @@
 var DIRECTION = {
     IDLE: 0,
     UP: 1,
-    DOWN: 2
+    DOWN: 2,
+    LEFT: 3,
+    RIGHT: 4
 };
 
-var rounds = [0, 20]
-var color = []
+var rounds = [20, 1, 3 ,3 ,2]
+var color = ['#7700ff']
 
 var ball = {
     new: function (incrementedSpeed) {
@@ -24,8 +26,8 @@ var ball = {
 var ai = {
     new: function (side) {
         return {
-            width: 18,
-            height: 100,
+            width: 20,
+            height: 180,
             x: side === 'left' ? 150 : this.canvas.width - 150,
             y: (this.canvas.height / 2) - 35,
             score: 0,
@@ -40,7 +42,7 @@ var Game = {
         this.canvas = document.querySelector('canvas');
         this.context = this.canvas.getContext('2d');
 
-        this.canvas.weight = 1400;
+        this.canvas.width = 1500;
         this.canvas.height = 1000;
 
         this.canvas.style.width = (this.canvas.width / 2) + 'px';
@@ -54,18 +56,19 @@ var Game = {
         this.running = this.over = false;
         this.turn = this.ai;
         this.timer = this.round = 0;
-        this.color = '#000000';
+        this.color = '#a45eff';
 
         Pong.menu();
         Pong.listen();
     },
 
     endGameMenu: function (text) {
-        //Pong.context.font;
-        //Pong.context
+        Pong.context.font = '45px Arial';
+        Pong.context.fillStyle = '#ffffff';
+
         Pong.context.fillRect(
             Pong.canvas.width / 2 - 350,
-            Pong.canvas.height / 2 - 350,
+            Pong.canvas.height / 2 - 48,
             700,
             100
         );
@@ -85,6 +88,9 @@ var Game = {
 
     menu: function () {
         Pong.draw();
+
+        this.context.font = '45px Arial';
+        this.context.fillStyle = '#dcd3e6';
 
         this.context.fillRect(
             this.canvas.width / 2 - 350,
@@ -106,25 +112,26 @@ var Game = {
             if (this.ball.x <= 0) Pong._resetTurn.call(this, this.ai, this.player);
             if (this.ball.x >= this.canvas.width - this.ball.width) Pong._resetTurn.call(this, this.player, this.ai);
             if (this.ball.y <= 0) this.ball.moveY = DIRECTION.DOWN;
-            if (this.ball.y >= this. canvas.height - this.ball.height) this.ball.moveY = DIRECTION.UP;
+            if (this.ball.y >= this.canvas.height - this.ball.height) this.ball.moveY = DIRECTION.UP;
 
             if(this.player.move === DIRECTION.UP) this.player.y -= this.player.speed;
             else if (this.player.move === DIRECTION.DOWN) this.player.y += this.player.speed;
 
             if (Pong._turnDelayIsOver.call(this) && this.turn) {
                 this.ball.moveX = this.turn === this.player ? DIRECTION.LEFT : DIRECTION.RIGHT;
-                this.ball.moveY = [DIRECTION.UP, DIRECTION.DOWN][Math.round(Math.random())]
+                this.ball.moveY = [DIRECTION.UP, DIRECTION.DOWN][Math.round(Math.random())];
                 this.ball.y = Math.floor(Math.random() * this.canvas.height - 200) + 200;
                 this.turn = null;
-            }
+            };
 
             if (this.player.y <= 0) this.player.y = 0;
-            else if (this.player.y <= (this.canva.height - this.player.height)) this.player.y = (this.canvas.height - this.player.height)
+            else if (this.player.y >= (this.canvas.height - this.player.height)) this.player.y = (this.canvas.height - this.player.height);
 
             if (this.ball.moveY === DIRECTION.UP) this.ball.y -= (this.ball.speed / 1.5);
             else if (this.ball.moveY === DIRECTION.DOWN) this.ball.y += (this.ball.speed / 1.5);
             if (this.ball.moveX === DIRECTION.LEFT) this.ball.x -= this.ball.speed;
             else if (this.ball.moveX === DIRECTION.RIGHT) this.ball.x += this.ball.speed;
+            
             if (this.ai.y > this.ball.y - (this.ai.height / 2)) {
                 if (this.ball.moveX === DIRECTION.RIGHT) this.ai.y -= this.ai.speed / 1.5;
                 else this.ai.y -= this.ai.speed / 4;
@@ -137,6 +144,8 @@ var Game = {
             if (this.ai.y >= this.canvas.height - this.ai.height) this.ai.y = this.canvas.height - this.ai.height;
             else if (this.ai.y <= 0) this.ai.y = 0;
 
+            console.log(this.ball.moveX)
+            if (this.ball.moveX === "undefined") this.ball.moveX - DIRECTION.RIGHT;
             if (this.ball.x - this.ball.width <= this.player.x && this.ball.x >= this.player.x - this.player.width) {
                 if (this.ball.y <= this.player.y + this.player.height && this.ball.y + this.ball.height >= this.player.y) {
                     this.ball.x = (this.player.x + this.ball.width);
@@ -250,21 +259,23 @@ var Game = {
     },
 
     listen: function () {
+        
         document.addEventListener('keydown', function (key) {
             if (Pong.running === false) {
                 Pong.running = true;
                 window.requestAnimationFrame(Pong.loop);
             }
  
-            if (key.keyCode === 38 || key.keyCode === 87) Pong.player.move = DIRECTION.UP;
+            if (key.key === "ArrowUp" || key.key === "w") Pong.player.move = DIRECTION.UP;
  
-            if (key.keyCode === 40 || key.keyCode === 83) Pong.player.move = DIRECTION.DOWN;
+            if (key.key === "ArrowDown" || key.key === "s") Pong.player.move = DIRECTION.DOWN;
         });
  
         document.addEventListener('keyup', function (key) { Pong.player.move = DIRECTION.IDLE; });
     },
+
     _resetTurn: function(victor, loser) {
-        this.ball = Ball.new.call(this, this.ball.speed);
+        this.ball = ball.new.call(this, this.ball.speed);
         this.turn = loser;
         this.timer = (new Date()).getTime();
  
@@ -276,7 +287,7 @@ var Game = {
     },
 
     _generateRoundColor: function () {
-        var newColor = colors[Math.floor(Math.random() * colors.length)];
+        var newColor = color[Math.floor(Math.random() * color.length)];
         if (newColor === this.color) return Pong._generateRoundColor();
         return newColor;
     }
